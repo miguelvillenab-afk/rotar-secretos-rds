@@ -1,0 +1,27 @@
+org: miguelvillenab
+service: rotar-secretos-rds
+
+provider:
+  name: aws
+  runtime: python3.13
+  memorySize: 512
+  timeout: 30
+  iam:
+    role: arn:aws:iam::777000342473:role/LabRole
+  environment:
+    SSM_HOST: /rds_mysql_alumnos/punto_enlace
+    SSM_ADMIN_PASSWORD: /rds_mysql_alumnos/admin/password
+    DB_ADMIN_USER: admin
+
+functions:
+  rotarPasswords:
+    handler: RotarPasswords.lambda_handler
+    package:
+      include:
+        - ./**
+    events:
+      - schedule:
+          name: regla-rotacion-secretos-10min
+          description: Rota 10 minutos las contraseñas de dev, test y prod
+          rate: rate(10 minutes)
+          enabled: true
